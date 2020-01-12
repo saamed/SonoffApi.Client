@@ -73,38 +73,17 @@ namespace SonoffApi.Client
         protected async Task DispatchRequestAsync<TReq>(SonoffMethods method, string deviceId, TReq request)
             where TReq : class, new()
         {
-            var methodUrl = method.GetDescription();
-            var url = String.Format(methodUrl, _deviceUrl);
-
-            using (var message = new HttpRequestMessage())
-            {
-                message.RequestUri = new System.Uri(url);
-                message.Method = HttpMethod.Post;
-
-                var requestObject = new DeviceRequest<TReq> { DeviceId = deviceId };
-
-                var requestContent = JsonConvert.SerializeObject(requestObject);
-
-                message.Content = new StringContent(requestContent, Encoding.UTF8, "application/json");
-
-                try
-                {
-                    using (var response = await _client.SendAsync(message, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
-                    {
-                        if (response.IsSuccessStatusCode)
-                        {
-                            throw new Exception($"Status Code =  {response.StatusCode}. Requires custom exception");
-                        }
-                    }
-                }
-                catch (TaskCanceledException)
-                {
-                    throw new TimeoutException($"Timeout getting response from {url}, client timeout is set to {_client.Timeout}.");
-                }
-            }
+            await DispatchRequestWithResponseAsync<TReq, EmptyData>(method, deviceId, request, false);
         }
 
         protected async Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request)
+                    where TReq : class, new()
+                    where TResp : class, new()
+        {
+            return await DispatchRequestWithResponseAsync<TReq, TResp>(method, deviceId, request, true);
+        }
+
+        protected async Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request, bool handleReturnValue)
             where TReq : class, new()
             where TResp : class, new()
         {
@@ -129,6 +108,11 @@ namespace SonoffApi.Client
                         if (response.IsSuccessStatusCode)
                         {
                             throw new Exception($"Status Code =  {response.StatusCode}. Requires custom exception");
+                        }
+
+                        if (!handleReturnValue)
+                        {
+                            return null;
                         }
 
                         var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);

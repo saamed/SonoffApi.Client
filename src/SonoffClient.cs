@@ -25,38 +25,9 @@ namespace SonoffApi.Client
 
         public async Task<DeviceInfo> GetDeviceInfoAsync(string deviceId)
         {
-            var url = $"http://{_deviceUrl}/zeroconf/info";
-            using (var message = new HttpRequestMessage())
-            {
-                message.RequestUri = new System.Uri(url);
-                message.Method = HttpMethod.Post;
+            var response = await DispatchRequestAsync<EmptyData, DeviceInfo>(SonoffMethods.GetDeviceInfo, deviceId, new EmptyData());
 
-                var requestObject = new DeviceRequest<EmptyData> { DeviceId = deviceId };
-
-                var requestContent = JsonConvert.SerializeObject(requestObject);
-
-                message.Content = new StringContent(requestContent, Encoding.UTF8, "application/json");
-
-                try
-                {
-                    using (var response = await _client.SendAsync(message, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
-                    {
-                        if (response.IsSuccessStatusCode)
-                        {
-                            throw new Exception($"Status Code =  {response.StatusCode}. Requires custom exception");
-                        }
-
-                        var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                        var contentObject = JsonConvert.DeserializeObject<DeviceResponse<DeviceInfo>>(content);
-
-                        return contentObject.Data;
-                    }
-                }
-                catch (TaskCanceledException)
-                {
-                    throw new TimeoutException($"Timeout getting response from {url}, client timeout is set to {_client.Timeout}.");
-                }
-            }
+            return response;
         }
 
         public Task<int> GetWifiSignalStrengthAsync(string deviceId)
@@ -98,5 +69,46 @@ namespace SonoffApi.Client
         {
             throw new System.NotImplementedException();
         }
+
+        protected async Task<TResp> DispatchRequestAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request)
+            where TReq : class, new()
+            where TResp : class, new()
+        {
+            var methodUrl = method.GetDescription();
+            var url = String.Format(methodUrl, _deviceUrl);
+
+            using (var message = new HttpRequestMessage())
+            {
+                message.RequestUri = new System.Uri(url);
+                message.Method = HttpMethod.Post;
+
+                var requestObject = new DeviceRequest<TReq> { DeviceId = deviceId };
+
+                var requestContent = JsonConvert.SerializeObject(requestObject);
+
+                message.Content = new StringContent(requestContent, Encoding.UTF8, "application/json");
+
+                try
+                {
+                    using (var response = await _client.SendAsync(message, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
+                    {
+                        if (response.IsSuccessStatusCode)
+                        {
+                            throw new Exception($"Status Code =  {response.StatusCode}. Requires custom exception");
+                        }
+
+                        var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        var contentObject = JsonConvert.DeserializeObject<DeviceResponse<TResp>>(content);
+
+                        return contentObject.Data;
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    throw new TimeoutException($"Timeout getting response from {url}, client timeout is set to {_client.Timeout}.");
+                }
+            }
+        }
+
     }
 }

@@ -25,7 +25,7 @@ namespace SonoffApi.Client
 
         public async Task<DeviceInfo> GetDeviceInfoAsync(string deviceId)
         {
-            var response = await DispatchRequestAsync<EmptyData, DeviceInfo>(SonoffMethods.GetDeviceInfo, deviceId, new EmptyData());
+            var response = await DispatchRequestWithResponseAsync<EmptyData, DeviceInfo>(SonoffMethods.GetDeviceInfo, deviceId, new EmptyData());
 
             return response;
         }
@@ -55,14 +55,14 @@ namespace SonoffApi.Client
             throw new System.NotImplementedException();
         }
 
-        public Task TurnSwitchOffAsync(string deviceId)
+        public async Task TurnSwitchOffAsync(string deviceId)
         {
-            throw new System.NotImplementedException();
+            await DispatchRequestAsync<SwitchData>(SonoffMethods.GetDeviceInfo, deviceId, new SwitchData() { Switch = State.Off });
         }
 
-        public Task TurnSwitchOnAsync(string deviceId)
+        public async Task TurnSwitchOnAsync(string deviceId)
         {
-            throw new System.NotImplementedException();
+            await DispatchRequestAsync<SwitchData>(SonoffMethods.GetDeviceInfo, deviceId, new SwitchData() { Switch = State.On });
         }
 
         public Task UnlockOTAAsync(string deviceId)
@@ -70,7 +70,41 @@ namespace SonoffApi.Client
             throw new System.NotImplementedException();
         }
 
-        protected async Task<TResp> DispatchRequestAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request)
+        protected async Task DispatchRequestAsync<TReq>(SonoffMethods method, string deviceId, TReq request)
+            where TReq : class, new()
+        {
+            var methodUrl = method.GetDescription();
+            var url = String.Format(methodUrl, _deviceUrl);
+
+            using (var message = new HttpRequestMessage())
+            {
+                message.RequestUri = new System.Uri(url);
+                message.Method = HttpMethod.Post;
+
+                var requestObject = new DeviceRequest<TReq> { DeviceId = deviceId };
+
+                var requestContent = JsonConvert.SerializeObject(requestObject);
+
+                message.Content = new StringContent(requestContent, Encoding.UTF8, "application/json");
+
+                try
+                {
+                    using (var response = await _client.SendAsync(message, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
+                    {
+                        if (response.IsSuccessStatusCode)
+                        {
+                            throw new Exception($"Status Code =  {response.StatusCode}. Requires custom exception");
+                        }
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    throw new TimeoutException($"Timeout getting response from {url}, client timeout is set to {_client.Timeout}.");
+                }
+            }
+        }
+
+        protected async Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request)
             where TReq : class, new()
             where TResp : class, new()
         {

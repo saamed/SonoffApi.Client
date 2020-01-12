@@ -23,64 +23,62 @@ namespace SonoffApi.Client
             _client?.Dispose();
         }
 
-        public async Task<DeviceInfo> GetDeviceInfoAsync(string deviceId)
+        public Task<DeviceInfoData> GetDeviceInfoAsync(string deviceId)
         {
-            var response = await DispatchRequestWithResponseAsync<EmptyData, DeviceInfo>(SonoffMethods.GetDeviceInfo, deviceId, new EmptyData());
-
-            return response;
+            return DispatchRequestWithResponseAsync<EmptyData, DeviceInfoData>(SonoffMethods.DeviceInfo, deviceId, new EmptyData());
         }
 
-        public Task<int> GetWifiSignalStrengthAsync(string deviceId)
+        public Task<WifiSignalStrengthData> GetWifiSignalStrengthAsync(string deviceId)
         {
-            throw new System.NotImplementedException();
+            return DispatchRequestWithResponseAsync<EmptyData, WifiSignalStrengthData>(SonoffMethods.WifiSignalStrength, deviceId, new EmptyData());
         }
 
-        public Task OTAFleshAsync(string deviceId, string downloadUrl, string sha2356sum)
+        public Task OTAFlashAsync(string deviceId, string downloadUrl, string sha256sum)
         {
-            throw new System.NotImplementedException();
+            return DispatchRequestAsync<OTAFlashData>(SonoffMethods.OTAFlash, deviceId, new OTAFlashData() { DownloadUrl = downloadUrl, Sha256Sum = sha256sum });
         }
 
         public Task SetInchingAsync(string deviceId, State pulse, long pulseWidth)
         {
-            throw new System.NotImplementedException();
+            return DispatchRequestAsync<InchingData>(SonoffMethods.Inching, deviceId, new InchingData() { Pulse = pulse, PulseWidth = pulseWidth });
         }
 
         public Task SetPowerOnStateAsync(string deviceId, PowerOnState powerOnState)
         {
-            throw new System.NotImplementedException();
+            return DispatchRequestAsync<PowerOnStateData>(SonoffMethods.PowerOnState, deviceId, new PowerOnStateData() { Startup = powerOnState });
         }
 
         public Task SetWiFiSettingsAsync(string deviceId, string ssid, string password)
         {
-            throw new System.NotImplementedException();
+            return DispatchRequestAsync<WifiSettingsData>(SonoffMethods.WifiSettings, deviceId, new WifiSettingsData() { SSID = ssid, Password = password });
         }
 
-        public async Task TurnSwitchOffAsync(string deviceId)
+        public Task TurnSwitchOffAsync(string deviceId)
         {
-            await DispatchRequestAsync<SwitchData>(SonoffMethods.GetDeviceInfo, deviceId, new SwitchData() { Switch = State.Off });
+            return DispatchRequestAsync<SwitchData>(SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.Off });
         }
 
-        public async Task TurnSwitchOnAsync(string deviceId)
+        public Task TurnSwitchOnAsync(string deviceId)
         {
-            await DispatchRequestAsync<SwitchData>(SonoffMethods.GetDeviceInfo, deviceId, new SwitchData() { Switch = State.On });
+            return DispatchRequestAsync<SwitchData>(SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.On });
         }
 
         public Task UnlockOTAAsync(string deviceId)
         {
-            throw new System.NotImplementedException();
+            return DispatchRequestAsync<EmptyData>(SonoffMethods.UnlockOTA, deviceId, new EmptyData());
         }
 
-        protected async Task DispatchRequestAsync<TReq>(SonoffMethods method, string deviceId, TReq request)
+        protected Task DispatchRequestAsync<TReq>(SonoffMethods method, string deviceId, TReq request)
             where TReq : class, new()
         {
-            await DispatchRequestWithResponseAsync<TReq, EmptyData>(method, deviceId, request, false);
+            return DispatchRequestWithResponseAsync<TReq, EmptyData>(method, deviceId, request, false);
         }
 
-        protected async Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request)
+        protected Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request)
                     where TReq : class, new()
                     where TResp : class, new()
         {
-            return await DispatchRequestWithResponseAsync<TReq, TResp>(method, deviceId, request, true);
+            return DispatchRequestWithResponseAsync<TReq, TResp>(method, deviceId, request, true);
         }
 
         protected async Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request, bool handleReturnValue)

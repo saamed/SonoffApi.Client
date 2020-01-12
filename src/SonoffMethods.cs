@@ -5,8 +5,17 @@ namespace SonoffApi.Client
     public enum SonoffMethods
     {
         [Description("http://{0}/zeroconf/info")]
-        GetDeviceInfo,
+        DeviceInfo,
         [Description("http://{0}/zeroconf/switch")]
-        SwitchOnOff
+        SwitchOnOff,
+        [Description("http://{0}/zeroconf/signal_strength")]
+        WifiSignalStrength,
+        [Description("http://{0}/zeroconf/ota_flash")]
+        OTAFlash,
+        [Description("http://{0}/zeroconf/pulse")]
+        Inching,
+        [Description("http://{0}/zeroconf/wifi")] PowerOnState,
+        WifiSettings,
+        [Description("http://{0}/zeroconf/ota_unlock")] UnlockOTA
     }
 }

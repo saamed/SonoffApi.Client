@@ -1,6 +1,6 @@
 namespace SonoffApi.Client.Data
 {
-    public class DeviceInfo
+    public class DeviceInfoData
     {
         public State Switch { get; set; }
         public PowerOnState Startup { get; set; }

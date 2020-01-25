@@ -20,7 +20,7 @@ namespace SonoffApi.Tests
         [Fact(Skip = "A real device must be in DIY mode")]
         public async Task should_turn_switch_on()
         {
-            var serviceData = GetServiceData();
+            var serviceData = await GetServiceData();
             var client = new SonoffClient($"{serviceData.ipAddress}:{serviceData.port}");
 
             System.Exception exception = null;
@@ -44,7 +44,7 @@ namespace SonoffApi.Tests
         [Fact(Skip = "A real device must be in DIY mode")]
         public async Task should_turn_switch_off()
         {
-            var serviceData = GetServiceData();
+            var serviceData = await GetServiceData();
             var client = new SonoffClient($"{serviceData.ipAddress}:{serviceData.port}");
 
             System.Exception exception = null;
@@ -68,7 +68,7 @@ namespace SonoffApi.Tests
         [Fact(Skip = "A real device must be in DIY mode")]
         public async Task should_change_power_on_state()
         {
-            var serviceData = GetServiceData();
+            var serviceData = await GetServiceData();
             var client = new SonoffClient($"{serviceData.ipAddress}:{serviceData.port}");
             var beforeDeviceInfo = await client.GetDeviceInfoAsync(serviceData.deviceId);
 
@@ -93,11 +93,10 @@ namespace SonoffApi.Tests
             await client.SetPowerOnStateAsync(serviceData.deviceId, beforeDeviceInfo.Startup);
         }
 
-        //[Fact(Skip = "A real device must be in DIY mode")]
-        [Fact]
+        [Fact(Skip = "A real device must be in DIY mode")]
         public async Task should_get_wifi_signal_strength()
         {
-            var serviceData = GetServiceData();
+            var serviceData = await GetServiceData();
             var client = new SonoffClient($"{serviceData.ipAddress}:{serviceData.port}");
 
             System.Exception exception = null;
@@ -118,7 +117,7 @@ namespace SonoffApi.Tests
         [Fact(Skip = "A real device must be in DIY mode")]
         public async Task should_set_inching()
         {
-            var serviceData = GetServiceData();
+            var serviceData = await GetServiceData();
             var client = new SonoffClient($"{serviceData.ipAddress}:{serviceData.port}");
 
             System.Exception exception = null;
@@ -143,7 +142,7 @@ namespace SonoffApi.Tests
         [InlineData("ssid", "password")]
         public async Task should_set_wifi_settings(string ssid, string password)
         {
-            var serviceData = GetServiceData();
+            var serviceData = await GetServiceData();
             var client = new SonoffClient($"{serviceData.ipAddress}:{serviceData.port}");
 
             System.Exception exception = null;
@@ -163,7 +162,7 @@ namespace SonoffApi.Tests
         [Fact(Skip = "A real device must be in DIY mode")]
         public async Task should_unlock_ota()
         {
-            var serviceData = GetServiceData();
+            var serviceData = await GetServiceData();
             var client = new SonoffClient($"{serviceData.ipAddress}:{serviceData.port}");
 
             System.Exception exception = null;
@@ -194,12 +193,11 @@ namespace SonoffApi.Tests
             Assert.NotEqual(beforeDeviceInfo.OtaUnlock, afterDeviceInfo.OtaUnlock);
         }
 
-
         [Theory(Skip = "A real device must be in DIY mode. Be sure you want to flash the device")]
         [InlineData("downloadUrl", "sha256sum")]
         public async Task should_flash_ota(string downloadUrl, string sha256sum)
         {
-            var serviceData = GetServiceData();
+            var serviceData = await GetServiceData();
             var client = new SonoffClient($"{serviceData.ipAddress}:{serviceData.port}");
 
             System.Exception exception = null;
@@ -218,7 +216,7 @@ namespace SonoffApi.Tests
         [Fact(Skip = "A real device must be in DIY mode")]
         public async Task should_return_device_info()
         {
-            var serviceData = GetServiceData();
+            var serviceData = await GetServiceData();
             var client = new SonoffClient($"{serviceData.ipAddress}:{serviceData.port}");
 
             DeviceInfoData deviceInfo = null;
@@ -236,12 +234,11 @@ namespace SonoffApi.Tests
             Assert.NotNull(deviceInfo);
         }
 
-
-        private static (string ipAddress, int port, string deviceId) GetServiceData()
+        private static async Task<(string ipAddress, int port, string deviceId)> GetServiceData()
         {
             var serviceName = "_ewelink._tcp.local.";
-            var hosts = ZeroconfResolver.ResolveAsync(serviceName).Result;
-            var host = hosts[0];
+            var hosts = await ZeroconfResolver.ResolveAsync(serviceName);
+            var host = hosts.First();
             var service = host.Services[serviceName];
             var ipAddress = host.IPAddress;
             var port = service.Port;

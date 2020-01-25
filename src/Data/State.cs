@@ -5,8 +5,8 @@ namespace SonoffApi.Client.Data
     public enum State
     {
         [Description("on")]
-        On,
+        on,
         [Description("off")]
-        Off
+        off
     }
 }

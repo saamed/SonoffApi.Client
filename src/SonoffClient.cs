@@ -55,12 +55,12 @@ namespace SonoffApi.Client
 
         public Task TurnSwitchOffAsync(string deviceId)
         {
-            return DispatchRequestAsync<SwitchData>(SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.Off });
+            return DispatchRequestAsync<SwitchData>(SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.off });
         }
 
         public Task TurnSwitchOnAsync(string deviceId)
         {
-            return DispatchRequestAsync<SwitchData>(SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.On });
+            return DispatchRequestAsync<SwitchData>(SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.on });
         }
 
         public Task UnlockOTAAsync(string deviceId)
@@ -90,10 +90,10 @@ namespace SonoffApi.Client
 
             using (var message = new HttpRequestMessage())
             {
-                message.RequestUri = new System.Uri(url);
+                message.RequestUri = new Uri(url);
                 message.Method = HttpMethod.Post;
 
-                var requestObject = new DeviceRequest<TReq> { DeviceId = deviceId };
+                var requestObject = new DeviceRequest<TReq> { DeviceId = deviceId, Data = request };
 
                 var requestContent = JsonConvert.SerializeObject(requestObject);
 
@@ -103,7 +103,7 @@ namespace SonoffApi.Client
                 {
                     using (var response = await _client.SendAsync(message, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
                     {
-                        if (response.IsSuccessStatusCode)
+                        if (!response.IsSuccessStatusCode)
                         {
                             throw new Exception($"Status Code =  {response.StatusCode}. Requires custom exception");
                         }
@@ -114,9 +114,10 @@ namespace SonoffApi.Client
                         }
 
                         var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                        var contentObject = JsonConvert.DeserializeObject<DeviceResponse<TResp>>(content);
+                        var stringObject = JsonConvert.DeserializeObject<DeviceResponse<string>>(content);
+                        var data = JsonConvert.DeserializeObject<TResp>(stringObject.Data);
 
-                        return contentObject.Data;
+                        return data;
                     }
                 }
                 catch (TaskCanceledException)

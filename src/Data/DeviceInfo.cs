@@ -1,6 +1,3 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-
 namespace SonoffApi.Client.Data
 {
     public class DeviceInfoData

@@ -7,86 +7,79 @@ using SonoffApi.Client.Data;
 
 namespace SonoffApi.Client
 {
-    public class SonoffClient : ISonoffClient, IDisposable
+    public class SonoffClient : ISonoffClient
     {
-        private readonly string _deviceUrl;
         private readonly HttpClient _client;
 
-        public SonoffClient(string deviceUrl)
+        public SonoffClient(HttpClient client)
         {
-            _deviceUrl = deviceUrl;
-            _client = new HttpClient();
+            _client = client;
         }
 
-        public void Dispose()
+        public Task<DeviceInfoData> GetDeviceInfoAsync(string address, int port, string deviceId)
         {
-            _client?.Dispose();
+            return DispatchRequestWithResponseAsync<EmptyData, DeviceInfoData>(address, port, SonoffMethods.DeviceInfo, deviceId, new EmptyData());
         }
 
-        public Task<DeviceInfoData> GetDeviceInfoAsync(string deviceId)
+        public Task<WifiSignalStrengthData> GetWifiSignalStrengthAsync(string address, int port, string deviceId)
         {
-            return DispatchRequestWithResponseAsync<EmptyData, DeviceInfoData>(SonoffMethods.DeviceInfo, deviceId, new EmptyData());
+            return DispatchRequestWithResponseAsync<EmptyData, WifiSignalStrengthData>(address, port, SonoffMethods.WifiSignalStrength, deviceId, new EmptyData());
         }
 
-        public Task<WifiSignalStrengthData> GetWifiSignalStrengthAsync(string deviceId)
+        public Task OTAFlashAsync(string address, int port, string deviceId, string downloadUrl, string sha256sum)
         {
-            return DispatchRequestWithResponseAsync<EmptyData, WifiSignalStrengthData>(SonoffMethods.WifiSignalStrength, deviceId, new EmptyData());
+            return DispatchRequestAsync(address, port, SonoffMethods.OTAFlash, deviceId, new OTAFlashData() { DownloadUrl = downloadUrl, Sha256Sum = sha256sum });
         }
 
-        public Task OTAFlashAsync(string deviceId, string downloadUrl, string sha256sum)
+        public Task SetInchingAsync(string address, int port, string deviceId, State pulse, long pulseWidth)
         {
-            return DispatchRequestAsync<OTAFlashData>(SonoffMethods.OTAFlash, deviceId, new OTAFlashData() { DownloadUrl = downloadUrl, Sha256Sum = sha256sum });
+            return DispatchRequestAsync(address, port, SonoffMethods.Inching, deviceId, new InchingData() { Pulse = pulse, PulseWidth = pulseWidth });
         }
 
-        public Task SetInchingAsync(string deviceId, State pulse, long pulseWidth)
+        public Task SetPowerOnStateAsync(string address, int port, string deviceId, PowerOnState powerOnState)
         {
-            return DispatchRequestAsync<InchingData>(SonoffMethods.Inching, deviceId, new InchingData() { Pulse = pulse, PulseWidth = pulseWidth });
+            return DispatchRequestAsync(address, port, SonoffMethods.PowerOnState, deviceId, new PowerOnStateData() { Startup = powerOnState });
         }
 
-        public Task SetPowerOnStateAsync(string deviceId, PowerOnState powerOnState)
+        public Task SetWiFiSettingsAsync(string address, int port, string deviceId, string ssid, string password)
         {
-            return DispatchRequestAsync<PowerOnStateData>(SonoffMethods.PowerOnState, deviceId, new PowerOnStateData() { Startup = powerOnState });
+            return DispatchRequestAsync(address, port, SonoffMethods.WifiSettings, deviceId, new WifiSettingsData() { SSID = ssid, Password = password });
         }
 
-        public Task SetWiFiSettingsAsync(string deviceId, string ssid, string password)
+        public Task TurnSwitchOffAsync(string address, int port, string deviceId)
         {
-            return DispatchRequestAsync<WifiSettingsData>(SonoffMethods.WifiSettings, deviceId, new WifiSettingsData() { SSID = ssid, Password = password });
+            return DispatchRequestAsync(address, port, SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.off });
         }
 
-        public Task TurnSwitchOffAsync(string deviceId)
+        public Task TurnSwitchOnAsync(string address, int port, string deviceId)
         {
-            return DispatchRequestAsync<SwitchData>(SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.off });
+            return DispatchRequestAsync(address, port, SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.on });
         }
 
-        public Task TurnSwitchOnAsync(string deviceId)
+        public Task UnlockOTAAsync(string address, int port, string deviceId)
         {
-            return DispatchRequestAsync<SwitchData>(SonoffMethods.SwitchOnOff, deviceId, new SwitchData() { Switch = State.on });
+            return DispatchRequestAsync(address, port, SonoffMethods.UnlockOTA, deviceId, new EmptyData());
         }
 
-        public Task UnlockOTAAsync(string deviceId)
-        {
-            return DispatchRequestAsync<EmptyData>(SonoffMethods.UnlockOTA, deviceId, new EmptyData());
-        }
-
-        protected Task DispatchRequestAsync<TReq>(SonoffMethods method, string deviceId, TReq request)
+        protected Task DispatchRequestAsync<TReq>(string address, int port, SonoffMethods method, string deviceId, TReq request)
             where TReq : class, new()
         {
-            return DispatchRequestWithResponseAsync<TReq, EmptyData>(method, deviceId, request, false);
+            return DispatchRequestWithResponseAsync<TReq, EmptyData>(address, port, method, deviceId, request, false);
         }
 
-        protected Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request)
+        protected Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(string address, int port, SonoffMethods method, string deviceId, TReq request)
                     where TReq : class, new()
                     where TResp : class, new()
         {
-            return DispatchRequestWithResponseAsync<TReq, TResp>(method, deviceId, request, true);
+            return DispatchRequestWithResponseAsync<TReq, TResp>(address, port, method, deviceId, request, true);
         }
 
-        protected async Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(SonoffMethods method, string deviceId, TReq request, bool handleReturnValue)
+        protected async Task<TResp> DispatchRequestWithResponseAsync<TReq, TResp>(string address, int port, SonoffMethods method, string deviceId, TReq request, bool handleReturnValue)
             where TReq : class, new()
             where TResp : class, new()
         {
             var methodUrl = method.GetDescription();
-            var url = String.Format(methodUrl, _deviceUrl);
+            var url = string.Format(methodUrl, address, port);
 
             using (var message = new HttpRequestMessage())
             {

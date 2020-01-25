@@ -14,8 +14,11 @@ namespace SonoffApi.Client
         OTAFlash,
         [Description("http://{0}/zeroconf/pulse")]
         Inching,
-        [Description("http://{0}/zeroconf/wifi")] PowerOnState,
+        [Description("http://{0}/zeroconf/startup")]
+        PowerOnState,
+        [Description("http://{0}/zeroconf/wifi")]
         WifiSettings,
-        [Description("http://{0}/zeroconf/ota_unlock")] UnlockOTA
+        [Description("http://{0}/zeroconf/ota_unlock")]
+        UnlockOTA
     }
 }

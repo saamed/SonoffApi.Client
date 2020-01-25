@@ -19,6 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SonoffApi.Client.csproj" />
+    <ProjectReference Include="..\..\src\SonoffApi.Client\SonoffApi.Client.csproj" />
   </ItemGroup>
 </Project>

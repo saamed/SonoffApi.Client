@@ -1,9 +1,9 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonoffApi.Client", "SonoffApi.Client.csproj", "{5944884C-B9E6-4602-98A0-A25641485ADC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonoffApi.Client", ".\src\SonoffApi.Client\SonoffApi.Client.csproj", "{5944884C-B9E6-4602-98A0-A25641485ADC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonoffApi.Tests", "..\test\SonoffApi.Tests\SonoffApi.Tests.csproj", "{8BC7D3E2-37F1-4056-BFB3-AF5D7E8D94D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonoffApi.Tests", ".\test\SonoffApi.Tests\SonoffApi.Tests.csproj", "{8BC7D3E2-37F1-4056-BFB3-AF5D7E8D94D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -10,12 +10,12 @@ using System;
 
 namespace SonoffApi.Tests
 {
-    public class SonoffR3BasicTests : IDisposable
+    public class SonoffApiIntegrationTests : IDisposable
     {
         private readonly ITestOutputHelper output;
         private readonly HttpClient _httpClient;
 
-        public SonoffR3BasicTests(ITestOutputHelper output)
+        public SonoffApiIntegrationTests(ITestOutputHelper output)
         {
             this.output = output;
             _httpClient = new HttpClient();
